@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash:*)",
+      "Bash(SESSION_COOKIE=\"53616c7465645f5f9d31888b3fd507c3fff2b11c780dadd7e743bd3ec1a81818d4fbcf3ca0a4252b3091c48abd62639cd6f9691ed1d15d987003f7127f358cde\")",
+      "Bash(curl:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
