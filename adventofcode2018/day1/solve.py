@@ -12,8 +12,29 @@ def solve():
         print(f"Please create '{filename}' with your puzzle input.")
         return
 
-    # TODO: Implement solution
-    print("Not yet implemented")
+    changes = []
+    for line in lines:
+        if not line:
+            continue
+        changes.append(int(line))
+
+    part1 = sum(changes)
+
+    seen = {0}
+    freq = 0
+    part2 = None
+    if changes:
+        i = 0
+        while True:
+            freq += changes[i]
+            if freq in seen:
+                part2 = freq
+                break
+            seen.add(freq)
+            i = (i + 1) % len(changes)
+
+    print(part1)
+    print(part2)
 
 if __name__ == '__main__':
     solve()
