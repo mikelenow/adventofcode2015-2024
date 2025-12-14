@@ -13,7 +13,25 @@ def solve():
         return
 
     # TODO: Implement solution
-    print("Not yet implemented")
+    vals = [int(s) for s in lines if s]
+    if len(vals) < 2:
+        print(0)
+        print(0)
+        return
+
+    card, door = vals[0], vals[1]
+    mod = 20201227
+    subj = 7
+
+    v = 1
+    loop = 0
+    while v != card:
+        v = (v * subj) % mod
+        loop += 1
+
+    key = pow(door, loop, mod)
+    print(key)
+    print(0)
 
 if __name__ == '__main__':
     solve()
