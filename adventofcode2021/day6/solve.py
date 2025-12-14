@@ -13,7 +13,38 @@ def solve():
         return
 
     # TODO: Implement solution
-    print("Not yet implemented")
+    first = ''
+    for s in lines:
+        if s:
+            first = s
+            break
+    if not first:
+        print(0)
+        print(0)
+        return
+
+    nums = [int(x) for x in first.split(',') if x]
+    counts = [0] * 9
+    for n in nums:
+        counts[n] += 1
+
+    def step(c):
+        z = c[0]
+        c = c[1:] + [z]
+        c[6] += z
+        return c
+
+    c = counts
+    for _ in range(80):
+        c = step(c)
+    part1 = sum(c)
+
+    for _ in range(256 - 80):
+        c = step(c)
+    part2 = sum(c)
+
+    print(part1)
+    print(part2)
 
 if __name__ == '__main__':
     solve()

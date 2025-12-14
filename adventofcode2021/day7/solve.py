@@ -1,4 +1,5 @@
 import sys
+import math
 
 def solve():
     filename = 'input.txt'
@@ -13,7 +14,38 @@ def solve():
         return
 
     # TODO: Implement solution
-    print("Not yet implemented")
+    first = ''
+    for s in lines:
+        if s:
+            first = s
+            break
+    if not first:
+        print(0)
+        print(0)
+        return
+
+    pos = [int(x) for x in first.split(',') if x]
+    pos.sort()
+    n = len(pos)
+
+    med = pos[n // 2]
+    part1 = sum(abs(x - med) for x in pos)
+
+    mean = sum(pos) / n
+    cands = {math.floor(mean), math.ceil(mean)}
+
+    def tri(d):
+        return d * (d + 1) // 2
+
+    best = None
+    for t in cands:
+        cost = sum(tri(abs(x - t)) for x in pos)
+        if best is None or cost < best:
+            best = cost
+    part2 = best or 0
+
+    print(part1)
+    print(part2)
 
 if __name__ == '__main__':
     solve()
