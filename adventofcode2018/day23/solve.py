@@ -36,95 +36,69 @@ def solve():
         if abs(x - sx) + abs(y - sy) + abs(z - sz) <= sr:
             part1 += 1
 
-    # Part 2: cube subdivision with priority queue
-    import heapq
+    # Part 2: coarse-to-fine search by step halving.
+    min_x = min(x - r for x, _, _, r in bots)
+    max_x = max(x + r for x, _, _, r in bots)
+    min_y = min(y - r for _, y, _, r in bots)
+    max_y = max(y + r for _, y, _, r in bots)
+    min_z = min(z - r for _, _, z, r in bots)
+    max_z = max(z + r for _, _, z, r in bots)
 
-    xs = [b[0] for b in bots]
-    ys = [b[1] for b in bots]
-    zs = [b[2] for b in bots]
-    min_x, max_x = min(xs), max(xs)
-    min_y, max_y = min(ys), max(ys)
-    min_z, max_z = min(zs), max(zs)
-
-    def pow2_cover(lo, hi):
-        size = 1
-        while size < (hi - lo + 1):
-            size *= 2
-        return size
-
-    size = max(pow2_cover(min_x, max_x), pow2_cover(min_y, max_y), pow2_cover(min_z, max_z))
-    # Use the true minimum corner as origin so the cube covers the full bounding box.
-    ox, oy, oz = min_x, min_y, min_z
-
-    def dist_point_to_cube(px, py, pz, cube):
-        x, y, z, s = cube
-        dx = 0
-        if px < x:
-            dx = x - px
-        elif px > x + s - 1:
-            dx = px - (x + s - 1)
-        dy = 0
-        if py < y:
-            dy = y - py
-        elif py > y + s - 1:
-            dy = py - (y + s - 1)
-        dz = 0
-        if pz < z:
-            dz = z - pz
-        elif pz > z + s - 1:
-            dz = pz - (z + s - 1)
-        return dx + dy + dz
-
-    def bots_in_range(cube):
+    def in_range_count(px, py, pz, step):
         cnt = 0
         for bx, by, bz, br in bots:
-            if dist_point_to_cube(bx, by, bz, cube) <= br:
+            # distance from point to bot center in manhattan, but scaled by step using ceil
+            d = abs(bx - px) + abs(by - py) + abs(bz - pz)
+            if d - br <= 0:
                 cnt += 1
         return cnt
 
-    def dist_origin_to_cube(cube):
-        return dist_point_to_cube(0, 0, 0, cube)
+    step = 1
+    span = max(max_x - min_x, max_y - min_y, max_z - min_z)
+    while step < span:
+        step *= 2
 
-    start_cube = (ox, oy, oz, size)
-    start_cnt = bots_in_range(start_cube)
-    pq = []
-    # max cnt, then min dist, then min size
-    heapq.heappush(pq, (-start_cnt, dist_origin_to_cube(start_cube), size, start_cube))
+    best_x = 0
+    best_y = 0
+    best_z = 0
 
-    best_dist = None
-    while pq:
-        neg_cnt, d0, s, cube = heapq.heappop(pq)
-        cnt = -neg_cnt
-        x, y, z, s = cube
+    while step >= 1:
+        best = None  # (negcnt, dist, x,y,z)
+        # Search in current bounding box on this grid
+        for x in range(min_x, max_x + 1, step):
+            for y in range(min_y, max_y + 1, step):
+                for z in range(min_z, max_z + 1, step):
+                    cnt = 0
+                    for bx, by, bz, br in bots:
+                        d = abs(bx - x) + abs(by - y) + abs(bz - z)
+                        if d <= br + (step - 1) * 3:
+                            # conservative: point within step-sized neighborhood might be in range
+                            cnt += 1
+                    dist0 = abs(x) + abs(y) + abs(z)
+                    key = (-cnt, dist0, x, y, z)
+                    if best is None or key < best:
+                        best = key
 
-        if s == 1:
-            # single point
-            if best_dist is None or d0 < best_dist:
-                best_dist = d0
-            # Since pq is ordered by (-cnt, dist, size), first point popped is optimal
-            print(part1)
-            print(d0)
-            return
+        _, _, best_x, best_y, best_z = best
 
-        hs = s // 2
-        children = [
-            (x, y, z, hs),
-            (x + hs, y, z, hs),
-            (x, y + hs, z, hs),
-            (x, y, z + hs, hs),
-            (x + hs, y + hs, z, hs),
-            (x + hs, y, z + hs, hs),
-            (x, y + hs, z + hs, hs),
-            (x + hs, y + hs, z + hs, hs),
-        ]
-        for child in children:
-            c_cnt = bots_in_range(child)
-            if c_cnt == 0:
-                continue
-            heapq.heappush(pq, (-c_cnt, dist_origin_to_cube(child), child[3], child))
+        # Narrow bounds around best point
+        min_x = best_x - step
+        max_x = best_x + step
+        min_y = best_y - step
+        max_y = best_y + step
+        min_z = best_z - step
+        max_z = best_z + step
+        step //= 2
+
+    # Final exact count at the best point
+    final_cnt = 0
+    for bx, by, bz, br in bots:
+        if abs(bx - best_x) + abs(by - best_y) + abs(bz - best_z) <= br:
+            final_cnt += 1
+    part2 = abs(best_x) + abs(best_y) + abs(best_z)
 
     print(part1)
-    print(best_dist if best_dist is not None else 0)
+    print(part2)
 
 if __name__ == '__main__':
     solve()
